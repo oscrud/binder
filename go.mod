@@ -1,3 +1,3 @@
-module oscrud-binder
+module binder
 
 go 1.13
