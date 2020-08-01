@@ -80,3 +80,42 @@ func main() {
     }
 }
 ```
+
+# Commands
+
+```
+$ go test --coverprofile=coverage.txt
+$ go tool cover -html=coverage.txt -o coverage.html
+```
+
+# Test Coverage
+
+```
+=== RUN   TestFloat
+--- PASS: TestFloat (0.00s)
+=== RUN   TestInt
+--- PASS: TestInt (0.00s)
+=== RUN   TestUInt
+--- PASS: TestUInt (0.00s)
+=== RUN   TestString
+--- PASS: TestString (0.00s)
+=== RUN   TestBoolean
+--- PASS: TestBoolean (0.00s)
+=== RUN   TestSlice
+--- PASS: TestSlice (0.00s)
+=== RUN   TestArray
+--- PASS: TestArray (0.00s)
+=== RUN   TestMap
+--- PASS: TestMap (0.00s)
+=== RUN   TestStruct
+--- PASS: TestStruct (0.00s)
+=== RUN   TestTypeName
+--- PASS: TestTypeName (0.00s)
+=== RUN   TestRegister
+--- PASS: TestRegister (0.00s)
+=== RUN   TestError
+--- PASS: TestError (0.00s)
+PASS
+coverage: 100.0% of statements
+ok      github.com/oscrud/binder        0.173s
+```

@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/oscrud/binder/main.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package binder
+
+import (
+        "errors"
+        "fmt"
+        "reflect"
+        "strconv"
+)
+
+// Error Message
+var (
+        ErrSourceNotAddressable  = errors.New("binder: source must be addressable")
+        ErrSourceCantBeInterface = errors.New("binder: source can't be interface")
+)
+
+// Bind :
+type Bind func(interface{}) (interface{}, error)
+
+// Binder :
+type Binder struct {
+        binder map[string]Bind
+}
+
+// NewBinder :
+func NewBinder() *Binder <span class="cov8" title="1">{
+        return &amp;Binder{
+                binder: make(map[string]Bind, 0),
+        }
+}</span>
+
+func getTypeName(rtype interface{}) string <span class="cov8" title="1">{
+        typ := reflect.TypeOf(rtype)
+        if typ.Kind() == reflect.Ptr </span><span class="cov8" title="1">{
+                typ = typ.Elem()
+        }</span>
+
+        <span class="cov8" title="1">if typ.Kind() == reflect.Array </span><span class="cov8" title="1">{
+                arrayType := typ.Elem()
+                len := fmt.Sprintf("%v", typ.Len())
+                if arrayType.PkgPath() != "" </span><span class="cov8" title="1">{
+                        return "array" + len + "$" + arrayType.PkgPath() + "." + arrayType.Name()
+                }</span>
+                <span class="cov8" title="1">return "array" + len + "$" + arrayType.Name()</span>
+        } else<span class="cov8" title="1"> if typ.Kind() == reflect.Slice </span><span class="cov8" title="1">{
+                sliceType := typ.Elem()
+                if sliceType.PkgPath() != "" </span><span class="cov8" title="1">{
+                        return "slice$" + sliceType.PkgPath() + "." + sliceType.Name()
+                }</span>
+                <span class="cov8" title="1">return "slice$" + sliceType.Name()</span>
+        }
+
+        <span class="cov8" title="1">if typ.PkgPath() != "" </span><span class="cov8" title="1">{
+                return typ.PkgPath() + "." + typ.Name()
+        }</span>
+        <span class="cov8" title="1">return typ.Name()</span>
+}
+
+// Register :
+func (b *Binder) Register(from interface{}, to interface{}, bind Bind) *Binder <span class="cov8" title="1">{
+        fromStr := getTypeName(from)
+        toStr := getTypeName(to)
+        b.binder[fromStr+","+toStr] = bind
+        return b
+}</span>
+
+// Bind :
+func (b Binder) Bind(assign interface{}, value interface{}) error <span class="cov8" title="1">{
+        typ := reflect.TypeOf(assign)
+        if typ.Kind() != reflect.Ptr </span><span class="cov8" title="1">{
+                return ErrSourceNotAddressable
+        }</span>
+
+        <span class="cov8" title="1">if typ.Elem().Kind() == reflect.Interface </span><span class="cov8" title="1">{
+                return ErrSourceCantBeInterface
+        }</span>
+
+        <span class="cov8" title="1">field := reflect.ValueOf(assign).Elem()
+        sederName := getTypeName(value) + "," + getTypeName(field.Interface())
+        if seder, ok := b.binder[sederName]; ok </span><span class="cov8" title="1">{
+                val, err := seder(value)
+                if err != nil </span><span class="cov8" title="1">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">field.Set(reflect.ValueOf(val))
+                return nil</span>
+        }
+
+        <span class="cov8" title="1">switch field.Type().Kind() </span>{
+        case reflect.Float32, reflect.Float64:<span class="cov8" title="1">
+                bit := field.Type().Bits()
+                str := fmt.Sprintf("%v", value)
+                result, err := strconv.ParseFloat(str, bit)
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to float%d", value, bit)
+                }</span>
+                <span class="cov8" title="1">field.SetFloat(result)
+                break</span>
+        case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:<span class="cov8" title="1">
+                bit := field.Type().Bits()
+                str := fmt.Sprintf("%v", value)
+                result, err := strconv.ParseUint(str, 10, bit)
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to uint%d", value, bit)
+                }</span>
+                <span class="cov8" title="1">field.SetUint(result)
+                break</span>
+        case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:<span class="cov8" title="1">
+                bit := field.Type().Bits()
+                str := fmt.Sprintf("%v", value)
+                result, err := strconv.ParseInt(str, 10, bit)
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to int%d", value, bit)
+                }</span>
+                <span class="cov8" title="1">field.SetInt(result)
+                break</span>
+        case reflect.String:<span class="cov8" title="1">
+                result := fmt.Sprintf("%v", value)
+                field.SetString(result)
+                break</span>
+        case reflect.Bool:<span class="cov8" title="1">
+                str := fmt.Sprintf("%v", value)
+                result, err := strconv.ParseBool(str)
+                if err != nil </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to bool", value)
+                }</span>
+                <span class="cov8" title="1">field.SetBool(result)
+                break</span>
+        case reflect.Slice:<span class="cov8" title="1">
+                qt := reflect.TypeOf(value)
+                if !field.Type().AssignableTo(qt) </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to slice %v", value, field.Type().Elem().Name())
+                }</span>
+                <span class="cov8" title="1">field.Set(reflect.ValueOf(value))
+                break</span>
+        case reflect.Array:<span class="cov8" title="1">
+                qt := reflect.TypeOf(value)
+                if !field.Type().AssignableTo(qt) </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to array %v", value, field.Type().Elem().Name())
+                }</span>
+                <span class="cov8" title="1">field.Set(reflect.ValueOf(value))
+                break</span>
+        case reflect.Struct:<span class="cov8" title="1">
+                qt := reflect.TypeOf(value)
+                if !field.Type().AssignableTo(qt) </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to struct %v", value, field.Type().Name())
+                }</span>
+                <span class="cov8" title="1">field.Set(reflect.ValueOf(value))
+                break</span>
+        case reflect.Map:<span class="cov8" title="1">
+                qt := reflect.TypeOf(value)
+                if !field.Type().AssignableTo(qt) </span><span class="cov8" title="1">{
+                        return fmt.Errorf("Trying to convert %v to map %v", value, field.Type().Name())
+                }</span>
+                <span class="cov8" title="1">field.Set(reflect.ValueOf(value))
+                break</span>
+        }
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
