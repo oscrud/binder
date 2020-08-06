@@ -448,4 +448,9 @@ func TestError(t *testing.T) {
 	if err != ErrSourceCantBeInterface {
 		t.Errorf("Should return error if assignee is private")
 	}
+
+	err = binder.Bind(nil, nil)
+	if err != ErrSourceAndAssignCantBeNil {
+		t.Errorf("Should return error if assignee or source is nil")
+	}
 }

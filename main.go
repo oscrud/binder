@@ -9,8 +9,9 @@ import (
 
 // Error Message
 var (
-	ErrSourceNotAddressable  = errors.New("binder: source must be addressable")
-	ErrSourceCantBeInterface = errors.New("binder: source can't be interface")
+	ErrSourceNotAddressable     = errors.New("binder: source must be addressable")
+	ErrSourceCantBeInterface    = errors.New("binder: source can't be interface")
+	ErrSourceAndAssignCantBeNil = errors.New("binder: source and assigned can't be nil")
 )
 
 // Bind :
@@ -65,6 +66,10 @@ func (b *Binder) Register(from interface{}, to interface{}, bind Bind) *Binder {
 
 // Bind :
 func (b Binder) Bind(assign interface{}, value interface{}) error {
+	if value == nil || assign == nil {
+		return ErrSourceAndAssignCantBeNil
+	}
+
 	typ := reflect.TypeOf(assign)
 	if typ.Kind() != reflect.Ptr {
 		return ErrSourceNotAddressable

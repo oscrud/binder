@@ -79,8 +79,9 @@ import (
 
 // Error Message
 var (
-        ErrSourceNotAddressable  = errors.New("binder: source must be addressable")
-        ErrSourceCantBeInterface = errors.New("binder: source can't be interface")
+        ErrSourceNotAddressable     = errors.New("binder: source must be addressable")
+        ErrSourceCantBeInterface    = errors.New("binder: source can't be interface")
+        ErrSourceAndAssignCantBeNil = errors.New("binder: source and assigned can't be nil")
 )
 
 // Bind :
@@ -135,7 +136,11 @@ func (b *Binder) Register(from interface{}, to interface{}, bind Bind) *Binder <
 
 // Bind :
 func (b Binder) Bind(assign interface{}, value interface{}) error <span class="cov8" title="1">{
-        typ := reflect.TypeOf(assign)
+        if value == nil || assign == nil </span><span class="cov8" title="1">{
+                return ErrSourceAndAssignCantBeNil
+        }</span>
+
+        <span class="cov8" title="1">typ := reflect.TypeOf(assign)
         if typ.Kind() != reflect.Ptr </span><span class="cov8" title="1">{
                 return ErrSourceNotAddressable
         }</span>
